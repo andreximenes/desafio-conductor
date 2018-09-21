@@ -230,6 +230,22 @@ Se não for passado a data, ele retorna sempre o extrato do dia, caso seja passa
 	        "ativa": true or false,
 	        "dataCriacao": "2018-09-19T22:24:24.000Z"
 	    }
+	    "extrato": [
+        {
+            "idTransacao": 11,
+            "idConta": 2,
+            "valor": 100,
+            "tipoOperacao": "S",
+            "dataTransacao": "2018-09-20T02:45:55.912Z"
+        },
+	 {
+            "idTransacao": 12,
+            "idConta": 2,
+            "valor": 500,
+            "tipoOperacao": "D",
+            "dataTransacao": "2018-09-20T02:46:56.912Z"
+        }
+    ]
     }
 
 ##
