@@ -1,0 +1,244 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concuctor.md</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h2 id="instruções-para-testes-funcionais">Instruções para testes funcionais</h2>
+<h3 id="criação-de-uma-nova-pessoa">Criação de uma nova pessoa</h3>
+<p>É possível criar uma nova pessoa através da API Rest.</p>
+<p><strong>Path:</strong></p>
+<pre><code>POST /api/pessoa
+</code></pre>
+<p><strong>Request</strong>:</p>
+<pre><code>{
+   "nome": "Novo Usuario",
+	"cpf": "98767856490",
+	"dataNascimento": "12/12/2012"
+}
+</code></pre>
+<p><strong>Response: HTTP/200</strong></p>
+<pre><code>{
+    "idPessoa": 4,
+    "nome": "Novo Usuario",
+	"cpf": "98767856490",
+	"dataNascimento": "12/12/2012"
+}
+</code></pre>
+<h2 id="section"></h2>
+<h3 id="criação-de-uma-nova-conta">Criação de uma nova Conta</h3>
+<p>Para criar uma conta é necessário ter uma pessoa cadastrada, pois uma conta sempre pertencerá a uma pessoa.</p>
+<p><strong>path:</strong></p>
+<pre><code>POST /api/conta
+</code></pre>
+<p><strong>request:</strong></p>
+<pre><code>{
+	"idPessoa": 4,
+	"saldo": 100.00,
+	"limiteSaqueDiario": 100.00,
+	"ativa": true
+}
+</code></pre>
+<p><strong>Response: HTTP/200</strong></p>
+<pre><code>{
+    "idConta": 3,
+    "idPessoa": 4,
+    "saldo": 100,
+    "limiteSaqueDiario": 100,
+    "ativa": true
+}
+</code></pre>
+<p><strong>Response: HTTP/500</strong></p>
+<p>caso o usuário tente criar uma nova conta sem uma pessoa válida.</p>
+<pre><code>{
+    "status": "INTERNAL_SERVER_ERROR",
+    "message": "Pessoa inexistente no banco de dados",
+    "errors": []
+}
+</code></pre>
+<h2 id="section-1"></h2>
+<h3 id="realização-de-operações-na-conta">Realização de operações na Conta</h3>
+<p>Para realizar as operações na conta, eu criei um request com atributos que são preenchidos de acordo com a necessidade dependendo da operação desejada pelo usuário.</p>
+<p><strong>Request para operações na conta:</strong></p>
+<pre><code>{
+	"idConta": int, 
+	"valor": BigDecimal,
+	"dataInicio": Date,
+	"dataFim": Date,
+}
+</code></pre>
+<p>As datas sempre devem ser enviadas no formato <strong>“19/09/2018”</strong> padrão usado por nós.<br>
+Os campos de data no request, só serão utilizados na requisição de extrato por período.</p>
+<p><strong>Response de operações na conta</strong><br>
+No fim de toda operação com sucesso na conta, a API retorna o extrato diário com as informações da conta e as transações realizadas no dia.</p>
+<h3 id="depósito">Depósito</h3>
+<p><strong>path:</strong></p>
+<pre><code>POST /api/conta/deposito
+</code></pre>
+<p><strong>request:</strong></p>
+<pre><code>{
+	"idConta":3, 
+	"valor": 100
+}
+</code></pre>
+<p><strong>response: HTTP/200</strong></p>
+<pre><code>{
+    "conta": {
+        "idConta": 2,
+        "idPessoa": 2,
+        "saldo": 600,
+        "limiteSaqueDiario": 100,
+        "ativa": true,
+        "dataCriacao": "2018-09-19T21:04:55.000Z"
+    },
+    "extrato": [
+        {
+            "idTransacao": 11,
+            "idConta": 2,
+            "valor": 100,
+            "tipoOperacao": "D",
+            "dataTransacao": "2018-09-20T02:45:55.912Z"
+        }
+    ]
+}
+</code></pre>
+<h2 id="section-2"></h2>
+<h3 id="saque">Saque</h3>
+<p><strong>path:</strong></p>
+<pre><code>POST /api/conta/saque
+</code></pre>
+<p><strong>request:</strong></p>
+<pre><code>{
+	"idConta":3, 
+	"valor": 100
+}
+</code></pre>
+<p><strong>response: HTTP/200</strong></p>
+<pre><code>{
+    "conta": {
+        "idConta": 2,
+        "idPessoa": 2,
+        "saldo": 600,
+        "limiteSaqueDiario": 100,
+        "ativa": true,
+        "dataCriacao": "2018-09-19T21:04:55.000Z"
+    },
+    "extrato": [
+        {
+            "idTransacao": 11,
+            "idConta": 2,
+            "valor": 100,
+            "tipoOperacao": "S",
+            "dataTransacao": "2018-09-20T02:45:55.912Z"
+        }
+    ]
+}
+</code></pre>
+<h2 id="section-3"></h2>
+<h3 id="bloqueio--desbloqueio-da-conta">Bloqueio / Desbloqueio da Conta</h3>
+<p><strong>path:</strong></p>
+<pre><code>POST /api/conta/bloqueio
+POST /api/conta/desbloqueio
+</code></pre>
+<p><strong>request:</strong></p>
+<pre><code>{
+	"idConta":3
+}
+</code></pre>
+<p><strong>response: HTTP/200</strong></p>
+<pre><code>{
+    "conta": {
+        "idConta": 3,
+        "idPessoa": 4,
+        "saldo": 100,
+        "limiteSaqueDiario": 100,
+        "ativa": true or false,
+        "dataCriacao": "2018-09-19T22:24:24.000Z"
+    }
+}
+</code></pre>
+<h2 id="section-4"></h2>
+<h3 id="extrato">Extrato</h3>
+<p>Se não for passado a data, ele retorna sempre o extrato do dia, caso seja passado a dataInicial e dataFinal é feito uma busca por período.<br>
+<strong>path:</strong></p>
+<pre><code>POST /api/conta/extrato
+</code></pre>
+<p><strong>request:</strong></p>
+<pre><code>//extrato diario
+{
+	"idConta":3
+}
+
+ou
+
+//extrato por periodo
+{
+	"idConta":2, 
+	"dataInicio": "19/09/2018",
+	"dataFim": "20/09/2018"
+}
+</code></pre>
+<p><strong>response</strong></p>
+<pre><code>{
+    "conta": {
+        "idConta": 3,
+        "idPessoa": 4,
+        "saldo": 100,
+        "limiteSaqueDiario": 100,
+        "ativa": true or false,
+        "dataCriacao": "2018-09-19T22:24:24.000Z"
+    }
+}
+</code></pre>
+<h2 id="section-5"></h2>
+<h3 id="pegar-apenas-as-informações-cadastrais-da-conta">Pegar apenas as informações cadastrais da Conta</h3>
+<p><strong>path</strong></p>
+<pre><code>GET /api/conta/{idConta}
+</code></pre>
+<p><strong>response</strong></p>
+<pre><code>{
+    "idConta": 2,
+    "idPessoa": 2,
+    "saldo": 600,
+    "limiteSaqueDiario": 100,
+    "ativa": true,
+    "dataCriacao": "2018-09-19T21:04:55.000Z"
+}
+</code></pre>
+<p><strong>Responses : HTTP/500</strong><br>
+Possíveis erros durante a realização de operações na conta</p>
+<pre><code>{
+    "status": "INTERNAL_SERVER_ERROR",
+    "message": "Conta inválida ou inexistente",
+    "errors": []
+}
+{
+    "status": "INTERNAL_SERVER_ERROR",
+    "message": "Saldo Insuficiente",
+    "errors": []
+}
+{
+    "status": "INTERNAL_SERVER_ERROR",
+    "message": "O limite de saque diário foi excedido",
+    "errors": []
+}
+{
+    "status": "INTERNAL_SERVER_ERROR",
+    "message": "A conta econtra-se bloqueada",
+    "errors": []
+}
+{   
+    "status": "INTERNAL_SERVER_ERROR",
+    "message": "O valor passado na operação é inválido",
+	"errors": []
+}
+</code></pre>
+</div>
+</body>
+
+</html>
